@@ -1,4 +1,12 @@
 import { Module } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
+import { Sport } from './entities/sport.entity';
 
-@Module({})
-export class SportsModule {}
+@Module({
+	imports: [SequelizeModule.forFeature([Sport])],
+	exports: [SequelizeModule],
+	providers: [],
+	controllers: [],
+})
+
+export class SportsModule { }
