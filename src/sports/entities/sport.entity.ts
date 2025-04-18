@@ -1,8 +1,13 @@
 import { Column, Model, Table, DataType, HasMany } from 'sequelize-typescript';
 import { Class } from '../../classes/entities/class.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Table
 export class Sport extends Model {
+	@ApiProperty({
+		description: 'Unique identifier for the sport',
+		example: '10eebc99-9c0b-4ef8-bb6d-6bb9bd380a19'
+	})
 	@Column({
 		type: DataType.UUID,
 		defaultValue: DataType.UUIDV4,
@@ -10,23 +15,27 @@ export class Sport extends Model {
 	})
 	declare id: string;
 
+	@ApiProperty({
+		description: 'Name of the sport (unique)',
+	})
 	@Column({
 		allowNull: false,
 		unique: true,
 	})
-	name: string;
+	declare name: string;
 
+	@ApiProperty({
+		description: 'Detailed description of the sport'
+	})
 	@Column({
 		type: DataType.TEXT,
 	})
-	description: string;
+	declare description: string;
 
-	@Column({
-		allowNull: false,
-		defaultValue: true,
+	@ApiProperty({
+		description: 'Classes associated with this sport',
+		type: [Class]
 	})
-	isActive: boolean;
-
 	@HasMany(() => Class)
 	classes: Class[];
 }
