@@ -4,14 +4,17 @@ import {
 	HttpException,
 	HttpStatus,
 } from "@nestjs/common";
-import { RolesGuard } from "src/auth/roles.guard";
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
+import { RolesGuard } from "../auth/roles.guard";
 import { UsersService } from "./users.service";
-import { Role } from "src/common/enums/role.enum";
+import { Role } from "../common/enums/role.enum";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { Roles } from "src/auth/roles.decorator";
+import { Roles } from "../auth/roles.decorator";
 import { UpdateRoleDto } from "./dto/update-role.dto";
+import { User } from "./entities/user.entity";
 
-
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller("users")
 @UseGuards(RolesGuard)
 export class UsersController {
@@ -19,6 +22,11 @@ export class UsersController {
 
 	@Get()
 	@Roles(Role.ADMIN)
+	@ApiOperation({ summary: 'Get all users', description: 'Retrieves a list of all users (Admin only)' })
+	@ApiResponse({ status: 200, description: 'List of users retrieved successfully', type: [User] })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	async getAllUsers() {
 		try {
 			const users = await this.usersService.findAll();
@@ -36,6 +44,12 @@ export class UsersController {
 	}
 
 	@Get(':id')
+	@ApiOperation({ summary: 'Get user by ID', description: 'Retrieves a specific user by ID (admins can view any user, others can only view themselves)' })
+	@ApiParam({ name: 'id', description: 'The UUID of the user' })
+	@ApiResponse({ status: 200, description: 'User found', type: User })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 403, description: 'Forbidden - cannot view other users\' data' })
+	@ApiResponse({ status: 404, description: 'User not found' })
 	async getUserById(@Param('id') id: string, @Request() req) {
 		try {
 			if (req.user.role !== Role.ADMIN && req.user.sub !== id) {
@@ -56,6 +70,14 @@ export class UsersController {
 	}
 
 	@Put(':id')
+	@ApiOperation({ summary: 'Update user', description: 'Updates a user\'s profile (admins can update any user, others can only update themselves)' })
+	@ApiParam({ name: 'id', description: 'The UUID of the user' })
+	@ApiBody({ type: UpdateUserDto })
+	@ApiResponse({ status: 200, description: 'User updated successfully', type: User })
+	@ApiResponse({ status: 400, description: 'Bad request - invalid data or email already exists' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 403, description: 'Forbidden - cannot update other users' })
+	@ApiResponse({ status: 404, description: 'User not found' })
 	async updateUser(
 		@Param('id') id: string,
 		@Body() updateUserDto: UpdateUserDto,
@@ -85,6 +107,13 @@ export class UsersController {
 
 	@Put(':id/role')
 	@Roles(Role.ADMIN)
+	@ApiOperation({ summary: 'Update user role', description: 'Updates a user\'s role (Admin only)' })
+	@ApiParam({ name: 'id', description: 'The UUID of the user' })
+	@ApiBody({ type: UpdateRoleDto })
+	@ApiResponse({ status: 200, description: 'User role updated successfully', type: User })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+	@ApiResponse({ status: 404, description: 'User not found' })
 	async updateUserRole(
 		@Param('id') id: string,
 		@Body() updateRoleDto: UpdateRoleDto,
