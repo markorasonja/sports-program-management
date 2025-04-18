@@ -1,20 +1,20 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SportsModule } from './sports/sports.module';
 import { ClassesModule } from './classes/classes.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { JwtAuthMiddleware } from './auth/jwt-auth.middleware';
 
 @Module({
 	imports: [ConfigModule.forRoot({
 		isGlobal: true,
 	}),
-		CommonModule, AuthModule, UsersModule, SportsModule, ClassesModule, ApplicationsModule,
+		AuthModule, UsersModule, SportsModule, ClassesModule, ApplicationsModule,
 	SequelizeModule.forRoot({
 		dialect: 'mysql',
 		host: process.env.DB_HOST || 'localhost',
@@ -29,4 +29,15 @@ import { SequelizeModule } from '@nestjs/sequelize';
 	controllers: [AppController],
 	providers: [AppService],
 })
-export class AppModule { }
+
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
+		consumer
+			.apply(JwtAuthMiddleware)
+			.exclude(
+				{ path: 'auth/login', method: RequestMethod.POST },
+				{ path: 'auth/register', method: RequestMethod.POST }
+			)
+			.forRoutes('*');
+	}
+}

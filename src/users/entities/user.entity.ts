@@ -13,41 +13,40 @@ export class User extends Model {
 	@Column({
 		allowNull: false,
 	})
-	firstName: string;
+	declare firstName: string;
 
 	@Column({
 		allowNull: false,
 	})
-	lastName: string;
+	declare lastName: string;
 
 	@Column({
 		allowNull: false,
 		unique: true,
 	})
-	email: string;
+	declare email: string;
 
 	@Column({
 		allowNull: false,
 	})
-	password: string;
+	declare password: string;
 
 	@Column({
 		type: DataType.DATEONLY,
 	})
-	dateOfBirth: Date;
+	declare dateOfBirth: Date;
 
 	@Column({
 		type: DataType.TEXT,
 	})
-	about: string;
+	declare about: string;
 
 	@Column({
 		type: DataType.ENUM(...Object.values(Role)),
-		allowNull: false,
 		defaultValue: Role.STUDENT,
 	})
-	role: Role;
+	declare role: Role;
 
 	@Column
-	phoneNumber: string;
+	declare phoneNumber: string;
 }
