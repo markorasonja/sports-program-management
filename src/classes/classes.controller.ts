@@ -1,6 +1,6 @@
 import {
 	Controller, Get, Post, Put, Delete,
-	Body, Param, UseGuards,
+	Body, Param, UseGuards, Query,
 	HttpException, HttpStatus, Request
 } from '@nestjs/common';
 import { ClassesService } from './classes.service';
@@ -41,12 +41,15 @@ export class ClassesController {
 	}
 
 	@Get()
-	@ApiOperation({ summary: 'Get all classes', description: 'Retrieves a list of all classes' })
+	@ApiOperation({ summary: 'Get all classes', description: 'Retrieves a list of all classes with optional sport filtering' })
+	@ApiQuery({ name: 'sport', description: 'Filter classes by sport name (optional)', required: false })
 	@ApiResponse({ status: 200, description: 'List of classes retrieved successfully', type: [Class] })
 	@ApiResponse({ status: 500, description: 'Internal server error' })
-	async findAll() {
+	async findAll(@Query('sport') sportKeyword?: string) {
 		try {
-			const classes = await this.classesService.findAll();
+			const classes = sportKeyword
+				? await this.classesService.searchClassesBySport(sportKeyword)
+				: await this.classesService.findAll();
 			return classes;
 		} catch (error) {
 			throw new HttpException(

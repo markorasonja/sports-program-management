@@ -8,6 +8,7 @@ import { UpdateClassDto } from './dto/update-class.dto';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Role } from '../common/enums/role.enum';
+import { Op } from 'sequelize';
 
 /**
  * Service handling class-related operations
@@ -278,5 +279,27 @@ export class ClassesService {
 		}
 
 		return classEntity.trainerId === trainerId;
+	}
+
+	/**
+	 * Searches for classes by sport name
+	 * 
+	 * @param sportKeyword - Sport name keyword to search for
+	 * @returns Array of classes matching the search criteria
+	 */
+	async searchClassesBySport(sportKeyword: string): Promise<Class[]> {
+		return this.classRepository.findAll({
+			include: [
+				{
+					model: Sport,
+					where: {
+						name: {
+							[Op.like]: `%${sportKeyword}%`
+						}
+					},
+				},
+				Schedule
+			]
+		});
 	}
 }
